@@ -3,7 +3,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import plotly.express as px
-import pandas as pd
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 import models
 
 # To fix - graph initialization - initialize margins (smaller) and axis labels properly!
@@ -11,7 +12,6 @@ import models
 # Maybe plot the graph over a diff colour
 # Reset button to clear the graph
 # Pause button to pause plotting
-
 
 model_options=['Solow Growth Model']
 
@@ -53,7 +53,7 @@ app.layout = html.Div([
         style={'display': 'inline-block','float': 'right',
                'width': '65%', 'height':'100%'})
 
-    ], id='container', style={'height':'700px'}),
+    ], id='container', style={'height':'600px'}),
 
 ])
 
@@ -138,7 +138,7 @@ def change_model_options(model):
             html.Div([
                 html.P(
                     'Productivity (z):',
-                    id='d-slider-text'),
+                    id='productivity-text'),
                 dcc.Input(
                     id='productivity-input',
                     type='number',
@@ -146,69 +146,82 @@ def change_model_options(model):
                     value=1
                 ),
             ], id='z-div'),
-            html.Div([
-                html.Button(
-                    'Start',
-                    id='start-button',
-                    n_clicks=0
-                ),
-                html.Button(
-                    'Pause',
-                    id='pause-button',
-                    n_clicks=0
-                ),
-                html.Button(
-                    'Reset',
-                    id='reset-button',
-                    n_clicks=0
-                )
-            ], id='button-div')
+            #html.Div([
+            #    html.Button(
+            #        'Start',
+            #        id='start-button',
+            #        n_clicks=0
+            #    ),
+            #    html.Button(
+            #        'Reset',
+            #        id='reset-button',
+            #        n_clicks=0
+            #    )
+            #], id='button-div')
         ]
         visualization = [
-            html.Div([
-                html.Div([
-                    dcc.Graph(
-                        id='graph-k'
-                    )
-                ], id='graph-k-div', style={'height':'50%', 'width':'100%'}),
-                html.Div([
-                    dcc.Graph(
-                        id='graph-Y'
-                    )
-                ], id='graph-Y-div', style={'height':'50%', 'width':'100%'})
-            ],
-            id='graph-left-column',
-            style={'float': 'left', 'width':'33.33%', 'height':'100%'}),
-            html.Div([
-                html.Div([
-                    dcc.Graph(
-                        id='graph-K'
-                    )
-                ], id='graph-K-div', style={'height':'50%', 'width':'100%'}),
-                html.Div([
-                    dcc.Graph(
-                        id='graph-C'
-                    )
-                ], id='graph-C-div', style={'height':'50%', 'width':'100%'})
-            ],
-            id='graph-middle-column',
-            style={'float': 'left', 'width':'33.33%', 'height':'100%'}),
-            html.Div([
-                html.Div([
-                    dcc.Graph(
-                        id='graph-N'
-                    )
-                ], id='graph-N-div', style={'height':'50%', 'width':'100%'}),
-                html.Div([
-                    dcc.Graph(
-                        id='graph-SI'
-                    )
-                ], id='graph-SI-div', style={'height':'50%', 'width':'100%'})
-            ], id='graph-right-column',
-            style={'float': 'left', 'width':'33.33%', 'height':'100%'}),
+            dcc.Graph(id='graph', style={'width':'100%', 'height':'100%'})
         ]
         return (layout, visualization)
 
+@app.callback(
+    Output('graph', 'figure'),
+    Input('population-input', 'value'),
+    Input('capital-input', 'value'),
+    Input('n-slider', 'value'),
+    Input('s-slider', 'value'),
+    Input('d-slider', 'value'),
+    Input('alpha-slider', 'value'),
+    Input('productivity-input', 'value'),
+)
+def update_graph(N, K, n, s, d, alpha, z):
+    model = models.SolowGrowth(N, K, n, s, d, z, alpha)
+    N_list = [model.N]
+    K_list = [model.K]
+    k_list = [model.k]
+    C_list = [model.C]
+    SI_list = [model.S]
+    Y_list = [model.Y]
+    for i in range(99):
+        model.increment()
+        N_list.append(model.N)
+        K_list.append(model.K)
+        k_list.append(model.k)
+        C_list.append(model.C)
+        SI_list.append(model.S)
+        Y_list.append(model.Y)
+
+    fig = make_subplots(rows=2, cols=3, shared_xaxes=True,
+    vertical_spacing=0.05,
+    subplot_titles=('N (Total Population) against Time','K (Total Capital) against Time','k (Capital to Labour Ratio) against Time','C (Total Consumption) against Time','S/I (Total Savings/Investment) against Time','Y (Total Income) against Time'))
+
+    fig.add_trace(
+        go.Scatter(x=[i for i in range(100)], y=N_list),
+        row=1, col=1
+    )
+    fig.add_trace(
+        go.Scatter(x=[i for i in range(100)], y=K_list),
+        row=1, col=2
+    )
+    fig.add_trace(
+        go.Scatter(x=[i for i in range(100)], y=k_list),
+        row=1, col=3
+    )
+    fig.add_trace(
+        go.Scatter(x=[i for i in range(100)], y=C_list),
+        row=2, col=1
+    )
+    fig.add_trace(
+        go.Scatter(x=[i for i in range(100)], y=SI_list),
+        row=2, col=2
+    )
+    fig.add_trace(
+        go.Scatter(x=[i for i in range(100)], y=Y_list),
+        row=2, col=3
+    )
+    fig.update_layout(showlegend=False, margin=dict(r=10, l=10, t=20, b=10))
+    return fig
+
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)
