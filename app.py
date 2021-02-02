@@ -9,11 +9,25 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import models
 
-# To fix - graph initialization - initialize margins (smaller) and axis labels properly!
+# First - callback that triggers when start button is pressed. If active,
+    # If no saved class exists:
+        # - Get the states of all the inputs and use that to:
+        # 1. Initialize the class with inputs.
+        # 2. Start incrementing
+        # 3. Update graph using 'extendData'
 
-# Maybe plot the graph over a diff colour
-# Reset button to clear the graph
-# Pause button to pause plotting
+    # However, if a saved class exists:
+        # - Get the states of all the inputs
+        # 1. Update the variables of the class accordingly!
+        # 2. Start incrementing
+        # 3. Update graph using 'extendData'
+
+# Next - callback that triggers when pause button is pressed.
+    # Stop the incrementing and updating. Save the current class somewhere.
+
+# Finally: Callback that triggers when reset button is presesd
+    # Clear the graph and delete any saved class.
+
 
 model_options=['Solow Growth Model']
 
