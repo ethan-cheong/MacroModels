@@ -9,37 +9,45 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import models
 
-def make_fig_solow():
-    fig = make_subplots(rows=2, cols=3, shared_xaxes=True,
-    vertical_spacing=0.05,
-    subplot_titles=('N (Total Population) against Time','K (Total Capital) against Time','k (Capital to Labour Ratio) against Time','C (Total Consumption) against Time','S/I (Total Savings/Investment) against Time','Y (Total Income) against Time'))
+# def make_fig_solow():
+#     fig = make_subplots(rows=2, cols=3, shared_xaxes=True,
+#     vertical_spacing=0.05,
+#     subplot_titles=('N (Total Population) against Time','K (Total Capital) against Time','k (Capital to Labour Ratio) against Time','C (Total Consumption) against Time','S/I (Total Savings/Investment) against Time','Y (Total Income) against Time'))
+#
+#     fig.add_trace(
+#         go.Scatter(x=[], y=[]),
+#         row=1, col=1
+#     )
+#     fig.add_trace(
+#         go.Scatter(x=[], y=[]),
+#         row=1, col=2
+#     )
+#     fig.add_trace(
+#         go.Scatter(x=[], y=[]),
+#         row=1, col=3
+#     )
+#     fig.add_trace(
+#         go.Scatter(x=[], y=[]),
+#         row=2, col=1
+#     )
+#     fig.add_trace(
+#         go.Scatter(x=[], y=[]),
+#         row=2, col=2
+#     )
+#     fig.add_trace(
+#         go.Scatter(x=[], y=[]),
+#         row=2, col=3
+#     )
+#     fig.update_layout(showlegend=False, margin=dict(r=10, l=10, t=20, b=10))
+#     return fig
 
+def make_fig_solow():
+    fig = go.Figure()
     fig.add_trace(
-        go.Scatter(x=[], y=[]),
-        row=1, col=1
+        go.Scatter(x = [], y= [])
     )
-    fig.add_trace(
-        go.Scatter(x=[], y=[]),
-        row=1, col=2
-    )
-    fig.add_trace(
-        go.Scatter(x=[], y=[]),
-        row=1, col=3
-    )
-    fig.add_trace(
-        go.Scatter(x=[], y=[]),
-        row=2, col=1
-    )
-    fig.add_trace(
-        go.Scatter(x=[], y=[]),
-        row=2, col=2
-    )
-    fig.add_trace(
-        go.Scatter(x=[], y=[]),
-        row=2, col=3
-    )
-    fig.update_layout(showlegend=False, margin=dict(r=10, l=10, t=20, b=10))
     return fig
+
 
 # First - callback that triggers when start button is pressed. If active,
     # If no saved class exists:
@@ -234,9 +242,7 @@ def toggle_counter(toggle, model, counter_state):
 # Keep track of counter. starts plotting once the counter is active.
 @app.callback(
     Output('graph', 'extendData'),
-    Output('memory', 'data'),
     Input('counter', 'n_intervals'),
-    State('memory', 'data'),
     State('population-input', 'value'),
     State('capital-input', 'value'),
     State('n-slider', 'value'),
@@ -245,20 +251,12 @@ def toggle_counter(toggle, model, counter_state):
     State('alpha-slider', 'value'),
     State('productivity-input', 'value'),
 )
-def update_graph(counter, memory, N, K, n, s, d, alpha, z):
-    if memory is None:
+def update_graph(counter,N, K, n, s, d, alpha, z):
         solow = models.SolowGrowth(N, K, n, s, d, z, alpha)
         solow.increment()
-        data = {x : [counter, counter, counter, counter, counter, counter],
-        y : [solow.N, solow.K, solow.k, solow.C, solow.S, solow.Y]}
-        return (data, solow)
-    else:
-        memory.increment()
-        data = {x : [counter, counter, counter, counter, counter, counter],
-        y : [memory.N, memory.K, memory.k, memory.C, memory.S, memory.Y]}
-        return (data, memory)
-
-
+        data = {'x' : counter,
+        'y' : solow.N}
+        return data, [0], 10
 
 
 
