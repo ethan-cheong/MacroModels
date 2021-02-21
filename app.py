@@ -2,16 +2,17 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import time
-from utils import provide_state
 import models
 import altair as alt
 
 st.set_page_config(layout='wide')
 
+# Choose model
 model_choice = st.sidebar.selectbox(
     'Model',
     ['select a model', 'Solow Growth Model', 'Closed-Economy One-Period Model', 'Two-Period Model']
 )
+
 
 if model_choice == 'select a model':
     """
@@ -30,8 +31,9 @@ elif model_choice == 'Solow Growth Model':
     Set parameters and click "draw graphs"
     """
 
+    # Sidebar parameters
     n_years = st.sidebar.number_input(
-        label='Enter total years passed',
+        label='Enter total number of years',
         min_value=1,
         value=50,
         step=1
@@ -90,9 +92,10 @@ elif model_choice == 'Solow Growth Model':
         step=0.01
     )
 
+    # Initialize model using parameters from sidebar
+    solow = models.SolowGrowthModel(N, K, n, s, d, z, alpha)
 
-    solow = models.SolowGrowth(N, K, n, s, d, z, alpha)
-
+    # Plot graphs with initial model parameters
     col1, col2, col3 = st.beta_columns(3)
     with col1:
         """### Total Population (N) against Time"""
@@ -112,6 +115,7 @@ elif model_choice == 'Solow Growth Model':
 
     active = False
 
+    # Start plotting
     if st.checkbox('Draw Graphs'):
         active = not active
 
@@ -125,3 +129,60 @@ elif model_choice == 'Solow Growth Model':
             k_chart.add_rows([solow.k])
             Y_chart.add_rows([solow.Y])
             time.sleep(0.005)
+
+elif model_choice == 'Closed-Economy One-Period Model':
+    """
+    # Closed-Economy One-Period Model
+    """
+    utility_function = st.sidebar.selectbox(
+        'Choose a Utility Function',
+        ['Normal Goods (Cobb-Douglas)', 'Perfect Complements', 'Perfect Substitutes', 'Quasi-Linear']
+    )
+
+    G = st.sidebar.number_input(
+        label = 'Government Spending (G)',
+        value = 20.0
+    )
+
+    K = st.sidebar.number_input(
+        label='Total Capital (K)',
+        min_value=1.0,
+        value=1000.0,
+        step=1.0
+    )
+
+    z = st.sidebar.number_input(
+        label='Productivity (z)',
+        value=1.0,
+        step=0.01
+    )
+
+    alpha = st.sidebar.slider(
+        label='Labour share of output (alpha)',
+        min_value=0.0,
+        max_value=0.99,
+        value=0.50,
+        step=0.01
+    )
+
+    one_period_macro_model = models.OnePeriodMacroModel(G, z, K, alpha)
+
+    ppf_df = pd.DataFrame(one_period_macro_model.ppf(24))
+
+    c = alt.Chart(ppf_df, mark='line').encode(
+        x='l', y='C'
+    ).interactive().properties(
+        height=600
+    )
+
+    st.altair_chart(c, use_container_width=True)
+
+
+elif model_choice == 'Two-Period Model':
+    """
+    # Two-Period Model
+    """
+    utility_function = st.sidebar.selectbox(
+    'Choose a Utility Function',
+    ['Normal Goods (Cobb-Douglas)', 'Perfect Complements', 'Perfect Substitutes', 'Quasi-Linear']
+    )
