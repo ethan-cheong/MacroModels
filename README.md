@@ -13,5 +13,5 @@ Contains the following models:
 * One-Period Macro Model
 
 ## app.py
-Dash front-end. App is currently hosted on heroku
+Streamlit front-end. App is currently hosted on heroku
 
